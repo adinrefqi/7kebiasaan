@@ -37,7 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
-        reportDate.value = `${yyyy}-${mm}-${dd}`;
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        reportDate.value = todayStr;
+        
+        // Kunci agar tidak bisa memilih tanggal kemarin atau besok
+        reportDate.setAttribute('min', todayStr);
+        reportDate.setAttribute('max', todayStr);
     }
 });
 
@@ -129,6 +135,22 @@ habitForm.addEventListener('submit', async (e) => {
 
     if (!selectedDate) {
         alert('Ups! Kamu belum memilih tanggal kegiatan.');
+        return;
+    }
+
+    // Validasi tambahan untuk mencegah input tanggal lewat/besok (jika bypass HTML)
+    const todayObj = new Date();
+    const yyyy = todayObj.getFullYear();
+    const mm = String(todayObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(todayObj.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    if (selectedDate < todayStr) {
+        alert('Maaf, kamu tidak bisa mengisi laporan untuk hari yang sudah lewat!');
+        return;
+    }
+    if (selectedDate > todayStr) {
+        alert('Maaf, kamu belum bisa mengisi laporan untuk hari esok!');
         return;
     }
 
