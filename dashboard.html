@@ -78,7 +78,40 @@
         }
     </style>
 </head>
-<body class="text-teal-900 min-h-screen pb-12 font-sans">
+<body class="text-teal-900 min-h-screen pb-12 font-sans overflow-hidden">
+
+    <!-- Login Overlay -->
+    <div id="teacher-login-overlay" class="fixed inset-0 z-[100] bg-teal-50 flex flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-teal-100">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-teal-800">Dasbor Guru</h2>
+                <p class="text-teal-600 mt-1">Silakan masuk untuk mengakses data siswa.</p>
+            </div>
+            
+            <form id="teacher-login-form">
+                <div class="mb-5">
+                    <label class="block font-bold text-teal-700 mb-2">Nama Guru</label>
+                    <select id="teacher-name-input" class="w-full px-4 py-3 rounded-xl border-2 border-teal-100 bg-gray-50 focus:border-teal-500 focus:bg-white outline-none transition-colors font-semibold text-teal-900 appearance-none" required>
+                        <option value="">-- Pilih Nama --</option>
+                        <option value="Thevea">Thevea</option>
+                        <option value="Morys">Morys</option>
+                        <option value="Sunedi">Sunedi</option>
+                        <option value="Adin">Adin</option>
+                    </select>
+                </div>
+                <div class="mb-8">
+                    <label class="block font-bold text-teal-700 mb-2">Password</label>
+                    <input type="password" id="teacher-password-input" class="w-full px-4 py-3 rounded-xl border-2 border-teal-100 bg-gray-50 focus:border-teal-500 focus:bg-white outline-none transition-colors font-semibold text-teal-900" placeholder="Masukkan sandi..." required>
+                </div>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i> Masuk Dasbor
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Navbar -->
     <nav class="bg-teal-600 text-white shadow-lg sticky top-0 z-40">
@@ -92,7 +125,10 @@
                     <h1 class="font-bold text-xl tracking-tight sm:hidden">Dasbor Guru</h1>
                 </div>
                 <div>
-                    <a href="index.html" class="bg-teal-700 hover:bg-teal-800 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                    <button id="teacher-logout-btn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition-colors text-white mr-2 shadow-sm inline-flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Keluar</span>
+                    </button>
+                    <a href="index.html" class="bg-teal-700 hover:bg-teal-800 px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-flex items-center gap-2 shadow-sm text-white">
                         <i class="fas fa-mobile-screen"></i> <span class="hidden sm:inline">Ke Aplikasi Siswa</span>
                     </a>
                 </div>
@@ -106,7 +142,7 @@
         <!-- Header & Filter -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-                <h2 class="text-3xl font-bold text-teal-800 tracking-tight mb-1">Halo, Bapak/Ibu Guru!</h2>
+                <h2 class="text-3xl font-bold text-teal-800 tracking-tight mb-1">Halo, Pak/Bu <span id="teacher-name-display">Guru</span>!</h2>
                 <p class="text-teal-600 font-medium">Pantau laporan harian kebiasaan hebat siswa secara real-time.</p>
             </div>
             <div class="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-teal-100 w-full md:w-auto">
@@ -231,6 +267,58 @@
         const sigModal = document.getElementById('sig-modal');
         const closeModalBtn = document.getElementById('close-modal');
         const modalImg = document.getElementById('modal-img');
+
+        // ==========================================
+        // 2.5 AUTENTIKASI GURU (LOGIN)
+        // ==========================================
+        const TEACHER_DATA = {
+            "Thevea": "54321",
+            "Morys": "54321",
+            "Sunedi": "54321",
+            "Adin": "54321"
+        };
+        
+        const loginOverlay = document.getElementById('teacher-login-overlay');
+        const loginForm = document.getElementById('teacher-login-form');
+        const logoutBtn = document.getElementById('teacher-logout-btn');
+        const teacherNameDisplay = document.getElementById('teacher-name-display');
+
+        function checkAuth() {
+            const isLogged = sessionStorage.getItem('teacherLogged');
+            const name = sessionStorage.getItem('teacherName');
+            
+            if (isLogged === 'true' && name) {
+                loginOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Buka scroll
+                if (teacherNameDisplay) teacherNameDisplay.innerText = name;
+                fetchLogs(); // Hanya muat data setelah login
+            } else {
+                loginOverlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Kunci scroll
+            }
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('teacher-name-input').value;
+            const pass = document.getElementById('teacher-password-input').value;
+
+            if (TEACHER_DATA[name] && TEACHER_DATA[name] === pass) {
+                sessionStorage.setItem('teacherLogged', 'true');
+                sessionStorage.setItem('teacherName', name);
+                checkAuth();
+            } else {
+                alert('Maaf, Password salah atau Nama belum dipilih!');
+            }
+        });
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('teacherLogged');
+                sessionStorage.removeItem('teacherName');
+                window.location.reload();
+            });
+        }
 
         // ==========================================
         // 3. SETUP DEFAULT TANGGAL LOKAL
@@ -404,8 +492,8 @@
             if (e.target === sigModal) closeSignatureModal();
         });
 
-        // Load data saat halaman pertama dibuka
-        document.addEventListener('DOMContentLoaded', fetchLogs);
+        // Load data atau tampilkan login saat halaman pertama dibuka
+        document.addEventListener('DOMContentLoaded', checkAuth);
     </script>
 </body>
 </html>
