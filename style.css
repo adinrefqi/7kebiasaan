@@ -1,0 +1,417 @@
+:root {
+    --primary-color: #0d9488; /* Teal cerah */
+    --primary-light: #14b8a6;
+    --accent-color: #f59e0b;  /* Kuning cerah */
+    --secondary-color: #ef4444; /* Merah lembut */
+    --bg-color: #f0fdfa;      /* Teal sangat muda */
+    --card-bg: #ffffff;
+    --text-main: #134e4a;     /* Teal gelap */
+    --text-muted: #64748b;
+    --border-color: #ccfbf1;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Quicksand', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: radial-gradient(#2dd4bf 0.5px, transparent 0.5px);
+    background-size: 20px 20px; /* Pola titik halus */
+    color: var(--text-main);
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.user-nav {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-logout {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: #fecaca;
+    transform: scale(1.05);
+}
+
+.container {
+    width: 100%;
+    max-width: 550px;
+    background: var(--card-bg);
+    padding: 40px 30px;
+    border-radius: 30px;
+    box-shadow: 0 20px 50px rgba(13, 148, 136, 0.15);
+    position: relative;
+    border: 2px solid #ffffff;
+    overflow: hidden; /* Tambahkan agar isi tidak keluar saat animasi */
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.hero-illustration {
+    margin-bottom: 15px;
+}
+
+.student-img {
+    width: 180px;
+    height: auto;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+}
+
+.cartoon-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -1px;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 0px #ccfbf1;
+}
+
+header p {
+    font-size: 1.1rem;
+    color: var(--primary-light);
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 35px;
+}
+
+label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 20px;
+    color: var(--primary-light);
+    font-size: 1.2rem;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 15px 20px 15px 55px;
+    border: 3px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.3s;
+    background-color: #f9fafb;
+    color: var(--text-main);
+}
+
+.input-with-icon input:focus {
+    border-color: var(--primary-color);
+    background-color: white;
+    box-shadow: 0 0 0 5px rgba(13, 148, 136, 0.1);
+}
+
+.login-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.login-container {
+    animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+select {
+    width: 100%;
+    padding: 15px 20px;
+    min-height: 48px; /* Touch-friendly */
+    border: 3px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.3s;
+    background-color: #f9fafb;
+    color: var(--text-main);
+    appearance: none;
+}
+
+select:focus {
+    border-color: var(--primary-color);
+    background-color: white;
+    box-shadow: 0 0 0 5px rgba(13, 148, 136, 0.1);
+}
+
+/* HABITS GRID OVERHAUL */
+.habits-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Diubah ke 1 kolom agar input deskripsi lebih leluasa */
+    gap: 20px;
+}
+
+.habit-card {
+    background: #ffffff;
+    border-radius: 25px;
+    padding: 10px;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.habit-card:hover {
+    background: #f0fdfa;
+    border-color: var(--border-color);
+}
+
+.habit-tile {
+    position: relative;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+}
+
+.habit-tile input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.tile-content {
+    background: #f8fafc;
+    border: 3px solid #f1f5f9;
+    border-radius: 20px;
+    padding: 15px 25px;
+    min-height: 60px; /* Touch-friendly */
+    display: flex;
+    flex-direction: row; /* Diubah ke baris agar ikon di samping teks */
+    align-items: center;
+    text-align: left;
+    gap: 20px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tile-icon {
+    font-size: 1.8rem;
+    width: 40px;
+    text-align: center;
+    color: var(--primary-light);
+    transition: transform 0.3s;
+}
+
+.habit-desc {
+    width: calc(100% - 80px); /* Menyesuaikan agar sejajar dengan teks nama */
+    margin-left: 70px; /* Sejajar dengan teks (Ikon 40px + Gap 20px + Padding 15px) */
+    margin-top: 10px;
+    padding: 12px 0; /* Touch-friendly */
+    min-height: 44px; /* Touch-friendly */
+    border: none;
+    border-bottom: 2px dashed #cbd5e1;
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.3s;
+}
+
+.habit-desc:focus {
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.habit-desc::placeholder {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.tile-content span {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.check-mark {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    transform: scale(0);
+    transition: transform 0.3s;
+}
+
+/* Hover & Checked State */
+.habit-tile:hover .tile-content {
+    transform: scale(1.05);
+    background: #f0fdfa;
+    border-color: var(--primary-color);
+}
+
+.habit-tile input:checked + .tile-content {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 20px rgba(13, 148, 136, 0.3);
+}
+
+.habit-tile input:checked + .tile-content .tile-icon,
+.habit-tile input:checked + .tile-content span {
+    color: white;
+}
+
+.habit-tile input:checked + .tile-content .check-mark {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* SIGNATURE SECTION */
+.signature-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.signature-wrapper {
+    width: 100%;
+    height: 220px;
+    border: 3px dashed var(--primary-color);
+    border-radius: 25px;
+    position: relative;
+    background-color: #ffffff;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.signature-wrapper:hover {
+    border-color: var(--accent-color);
+    background-color: #fffbeb;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+    display: block;
+}
+
+.sig-hint {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-light);
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.btn-clear {
+    align-self: center;
+    background: transparent;
+    color: var(--secondary-color);
+    border: 2px solid var(--secondary-color);
+    padding: 12px 24px; /* Touch-friendly */
+    min-height: 44px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-clear:hover {
+    background: #fef2f2;
+    transform: scale(1.05);
+}
+
+/* ACTION BUTTONS */
+.form-actions {
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    width: 100%;
+    padding: 20px; /* Touch-friendly */
+    min-height: 60px;
+    border-radius: 50px; /* Pill-shaped */
+    font-size: 1.25rem;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(13, 148, 136, 0.4);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(13, 148, 136, 0.5);
+    filter: brightness(1.1);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+    .container {
+        padding: 30px 20px;
+    }
+    
+    .habits-grid {
+        grid-template-columns: 1fr; /* Stack on mobile for better visibility */
+    }
+
+    .cartoon-title {
+        font-size: 1.8rem;
+    }
+}

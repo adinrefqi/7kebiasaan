@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Siswa - Gerakan 7 Kebiasaan</title>
+    
+    <!-- Google Fonts: Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <script src="data_siswa.js"></script>
+</head>
+<body class="login-page">
+    <div class="container login-container">
+        <header>
+            <div class="hero-illustration">
+                <img src="karakter_siswa_indonesia_ceria.png" alt="Karakter Siswa Indonesia" class="student-img">
+            </div>
+            <h1 class="cartoon-title">Halo Sahabat!</h1>
+            <p>Silakan masuk untuk mencatat kebiasaan hebatmu.</p>
+        </header>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="student-id">ID Siswa (Contoh: 08-001)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="student-id" placeholder="Masukkan ID kamu..." required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="student-pin">PIN Keamanan</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="student-pin" placeholder="Masukkan 4 digit PIN..." maxlength="4" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    Masuk Sekarang <i class="fas fa-sign-in-alt"></i>
+                </button>
+            </div>
+            
+            <p class="login-footer">Belum punya akun? Hubungi Bapak/Ibu Guru ya!</p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const idInput = document.getElementById('student-id').value.trim();
+            const pin = document.getElementById('student-pin').value;
+
+            // Cari siswa berdasarkan ID
+            const student = window.STUDENT_DATA.find(s => s.id === idInput);
+
+            if (student) {
+                // PIN dummy 1234
+                if (pin === "1234") {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('studentID', student.id);
+                    localStorage.setItem('studentName', student.nama);
+                    
+                    alert('Selamat datang, ' + student.nama + '! Yuk catat kebiasaanmu.');
+                    window.location.href = 'index.html';
+                } else {
+                    alert('PIN salah. Coba lagi ya! (Tips: PIN default adalah 1234)');
+                }
+            } else {
+                alert('ID Siswa tidak ditemukan. Pastikan formatnya benar (Contoh: 08-001)');
+            }
+        });
+
+        // Cek jika sudah login
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

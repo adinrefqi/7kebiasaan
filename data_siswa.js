@@ -1,0 +1,48 @@
+const STUDENT_DATA = [
+  // Kelas 8
+  { id: "08-001", nama: "Calvin Fransisco", kelas: 8 },
+  { id: "08-002", nama: "Celine Octavia Kusuma", kelas: 8 },
+  { id: "08-003", nama: "Clarice Siera Elisabeth Rahardjo", kelas: 8 },
+  { id: "08-004", nama: "Clement Raphael Kurnia", kelas: 8 },
+  { id: "08-005", nama: "Darwin Adelio Alvaro", kelas: 8 },
+  { id: "08-006", nama: "Desiani Natalia Siallagan", kelas: 8 },
+  { id: "08-007", nama: "Erland Adriano Budiman", kelas: 8 },
+  { id: "08-008", nama: "Faris Mahardika Luki", kelas: 8 },
+  { id: "08-009", nama: "Flourencia Alvina", kelas: 8 },
+  { id: "08-010", nama: "Giovanni Agnell Tanuwijaya", kelas: 8 },
+  { id: "08-011", nama: "Gisella Cellena Cleola Andrian", kelas: 8 },
+  { id: "08-012", nama: "Graciana Shinta Dewi", kelas: 8 },
+  { id: "08-013", nama: "Henedictus Greffy Jeisen Putra", kelas: 8 },
+  { id: "08-014", nama: "Ivana Jacinda", kelas: 8 },
+  { id: "08-015", nama: "Jefferson Setiawan", kelas: 8 },
+  { id: "08-016", nama: "Jesslyn Anna Belle Arminta Prawiro", kelas: 8 },
+  { id: "08-017", nama: "Jesslyn Yoewono", kelas: 8 },
+  { id: "08-018", nama: "Jocelyn Octavia Gunawan", kelas: 8 },
+  { id: "08-019", nama: "Johan Faizal", kelas: 8 },
+  { id: "08-020", nama: "Keiko Lee Yohanes", kelas: 8 },
+  { id: "08-021", nama: "Marquez Loris", kelas: 8 },
+  { id: "08-022", nama: "Michelle Angelica Setiono", kelas: 8 },
+  { id: "08-023", nama: "Mikhaela Josephine Soetjipto", kelas: 8 },
+  { id: "08-024", nama: "Octavelie Sila Kirana", kelas: 8 },
+  { id: "08-025", nama: "Reynaldo Xavier Alexander Gunawan", kelas: 8 },
+  { id: "08-026", nama: "Sebastian Moses Firlandi", kelas: 8 },
+  { id: "08-027", nama: "Yuriko Jessi Setiawan", kelas: 8 },
+
+  // Kelas 7
+  { id: "07-001", nama: "Cathleen Hava Eliora.S", kelas: 7 },
+  { id: "07-002", nama: "Chrisna Monica Onggowarsito", kelas: 7 },
+  { id: "07-003", nama: "Eleanore Kimberly Wong", kelas: 7 },
+  { id: "07-004", nama: "Engracia Sarah Chrisyabelle.S", kelas: 7 },
+  { id: "07-005", nama: "Jasson Alvaro Gunarto", kelas: 7 },
+  { id: "07-006", nama: "Jennifer Aurelia Febriana", kelas: 7 },
+  { id: "07-007", nama: "Keane William Gunawan", kelas: 7 },
+  { id: "07-008", nama: "Kenichi Alvaro Gavriel", kelas: 7 },
+  { id: "07-009", nama: "Keyzia El Ryansyah", kelas: 7 },
+  { id: "07-010", nama: "Melvin Antan Djaya", kelas: 7 },
+  { id: "07-011", nama: "M. Akhil Fadillah", kelas: 7 },
+  { id: "07-012", nama: "Nathasya Michelle Lee", kelas: 7 },
+  { id: "07-013", nama: "Nicholas Willson Kasuya", kelas: 7 },
+  { id: "07-014", nama: "Vincentius Fernandez Suharto", kelas: 7 }
+];
+
+window.STUDENT_DATA = STUDENT_DATA;

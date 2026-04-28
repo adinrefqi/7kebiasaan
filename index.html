@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerakan 7 Kebiasaan Anak Indonesia</title>
+    
+    <!-- Google Fonts: Quicksand for a friendly rounded look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="karakter_siswa_indonesia_ceria.png">
+
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Signature Pad CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="user-nav">
+                <button id="logout-btn" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+            </div>
+            <div class="hero-illustration">
+                <img src="karakter_siswa_indonesia_ceria.png" alt="Karakter Siswa Indonesia" class="student-img">
+            </div>
+            <h1 class="cartoon-title">Halo, <span id="display-name">Siswa</span>!</h1>
+            <p>Yuk, tunjukkan kebiasaan hebatmu hari ini!</p>
+        </header>
+
+        <form id="habit-form">
+            <!-- Hidden field untuk nama siswa agar logika submit tetap jalan -->
+            <input type="hidden" id="student-name">
+
+            <div class="form-group">
+                <label>Pilih Kebiasaan Kamu Hari Ini:</label>
+                <div class="habits-grid">
+                    
+                    <!-- Ibadah -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Ibadah Tepat Waktu">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-star"></i></div>
+                                <span>Ibadah Tepat Waktu</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Contoh: Sholat Subuh berjamaah...">
+                    </div>
+
+                    <!-- Membantu -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Membantu Orang Tua">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-hands-holding-heart"></i></div>
+                                <span>Membantu Orang Tua</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Contoh: Menyapu halaman...">
+                    </div>
+
+                    <!-- Belajar -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Belajar / Membaca">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-book-open-reader"></i></div>
+                                <span>Belajar / Membaca</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Contoh: Baca buku cerita...">
+                    </div>
+
+                    <!-- Merapikan -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Merapikan Tempat Tidur">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-bed"></i></div>
+                                <span>Merapikan Tempat Tidur</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Detail (opsional)...">
+                    </div>
+
+                    <!-- Sopan -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Berkata Sopan">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-comment-dots"></i></div>
+                                <span>Berkata Sopan</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Contoh: Mengucap salam...">
+                    </div>
+
+                    <!-- Menabung -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Menabung">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <span>Menabung</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Contoh: Masukkan uang ke celengan...">
+                    </div>
+
+                    <!-- Olahraga -->
+                    <div class="habit-card">
+                        <label class="habit-tile">
+                            <input type="checkbox" name="habit" value="Olahraga & Bersih">
+                            <div class="tile-content">
+                                <div class="tile-icon"><i class="fas fa-child-reaching"></i></div>
+                                <span>Olahraga & Bersih</span>
+                                <div class="check-mark"><i class="fas fa-check"></i></div>
+                            </div>
+                        </label>
+                        <input type="text" class="habit-desc" placeholder="Contoh: Senam pagi...">
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tanda Tangan Ayah atau Ibu:</label>
+                <div class="signature-container">
+                    <div class="signature-wrapper">
+                        <canvas id="signature-pad"></canvas>
+                        <div class="sig-hint">Tanda tangan di sini ya..</div>
+                    </div>
+                    <button type="button" id="clear-btn" class="btn-clear">
+                        <i class="fas fa-eraser"></i> Bersihkan TTD
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="submit-btn" class="btn-primary">
+                    Kirim Data Kebiasaan <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
