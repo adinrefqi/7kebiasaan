@@ -185,6 +185,16 @@
             </div>
         </div>
 
+        <!-- Top 3 Siswa -->
+        <div class="bg-white rounded-3xl shadow-sm border border-teal-100 p-6 mb-8 hidden" id="top-students-container">
+            <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2 mb-6">
+                <i class="fas fa-trophy text-yellow-500 text-xl"></i> 3 Siswa Paling Aktif (Semua Waktu)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="top-students-grid">
+                <!-- Data akan disisipkan di sini -->
+            </div>
+        </div>
+
         <!-- Table Section -->
         <div class="glass-card rounded-3xl overflow-hidden shadow-sm">
             <div class="p-6 border-b border-gray-100 bg-white/60 flex justify-between items-center">
@@ -298,6 +308,7 @@
                 document.body.style.overflow = 'auto'; // Buka scroll
                 if (teacherNameDisplay) teacherNameDisplay.innerText = name;
                 fetchLogs(); // Hanya muat data setelah login
+                fetchTopStudents(); // Muat data top 3
             } else {
                 loginOverlay.style.display = 'flex';
                 document.body.style.overflow = 'hidden'; // Kunci scroll
@@ -340,6 +351,83 @@
         function formatTime(isoString) {
             const date = new Date(isoString);
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ==========================================
+        // 4.5 FUNGSI FETCH TOP 3 SISWA
+        // ==========================================
+        async function fetchTopStudents() {
+            try {
+                // Ambil semua data (untuk menentukan siapa yang paling sering mengisi)
+                const { data, error } = await supabaseClient
+                    .from('habit_logs')
+                    .select('student_name, habits');
+
+                if (error) throw error;
+                
+                const container = document.getElementById('top-students-container');
+                const grid = document.getElementById('top-students-grid');
+                
+                if (!data || data.length === 0) {
+                    container.classList.add('hidden');
+                    return;
+                }
+
+                // Hitung jumlah laporan dan jumlah kegiatan
+                const studentStats = {};
+                data.forEach(log => {
+                    const name = log.student_name || "Tanpa Nama";
+                    if (!studentStats[name]) {
+                        studentStats[name] = { reports: 0, totalHabits: 0 };
+                    }
+                    studentStats[name].reports += 1;
+                    
+                    let habitsArr = log.habits;
+                    if (typeof habitsArr === 'string') {
+                        try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
+                    }
+                    studentStats[name].totalHabits += Array.isArray(habitsArr) ? habitsArr.length : 0;
+                });
+
+                // Urutkan berdasarkan total reports, lalu total habits
+                const sorted = Object.entries(studentStats).sort((a, b) => {
+                    if (b[1].reports === a[1].reports) {
+                        return b[1].totalHabits - a[1].totalHabits;
+                    }
+                    return b[1].reports - a[1].reports;
+                }).slice(0, 3);
+
+                grid.innerHTML = '';
+                const medals = ['text-yellow-400', 'text-gray-400', 'text-amber-600'];
+                const bgMedals = ['bg-yellow-50', 'bg-gray-50', 'bg-amber-50'];
+                const borderMedals = ['border-yellow-200', 'border-gray-200', 'border-amber-200'];
+
+                sorted.forEach((student, index) => {
+                    const name = student[0];
+                    const stats = student[1];
+                    
+                    const card = `
+                        <div class="p-4 rounded-2xl border ${borderMedals[index]} ${bgMedals[index]} flex items-center gap-4 transition-transform hover:-translate-y-1">
+                            <div class="text-4xl ${medals[index]} drop-shadow-sm">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                            <div>
+                                <div class="font-extrabold text-gray-800 text-lg leading-tight mb-1">${name}</div>
+                                <div class="text-xs font-bold text-gray-600 bg-white/60 inline-block px-2 py-1 rounded-lg">
+                                    <span class="text-teal-700">${stats.reports}</span> Hari Mengisi &bull; 
+                                    <span class="text-teal-700">${stats.totalHabits}</span> Kegiatan
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += card;
+                });
+
+                container.classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Gagal mengambil top students:", err);
+            }
         }
 
         // ==========================================
@@ -488,7 +576,7 @@
         refreshBtn.addEventListener('click', () => {
             const icon = refreshBtn.querySelector('i');
             icon.classList.add('fa-spin');
-            fetchLogs().then(() => {
+            Promise.all([fetchLogs(), fetchTopStudents()]).then(() => {
                 setTimeout(() => icon.classList.remove('fa-spin'), 500);
             });
         });
