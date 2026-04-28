@@ -235,23 +235,25 @@ select:focus {
 }
 
 .habit-desc {
-    width: calc(100% - 80px); /* Menyesuaikan agar sejajar dengan teks nama */
-    margin-left: 70px; /* Sejajar dengan teks (Ikon 40px + Gap 20px + Padding 15px) */
+    width: 100%;
     margin-top: 10px;
-    padding: 12px 0; /* Touch-friendly */
-    min-height: 44px; /* Touch-friendly */
-    border: none;
-    border-bottom: 2px dashed #cbd5e1;
-    background: transparent;
+    padding: 12px 15px; /* Touch-friendly */
+    min-height: 48px; /* Touch-friendly */
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-main);
     outline: none;
     transition: all 0.3s;
+    box-sizing: border-box;
 }
 
 .habit-desc:focus {
-    border-bottom: 2px solid var(--primary-color);
+    border-color: var(--primary-color);
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.1);
 }
 
 .habit-desc::placeholder {
@@ -403,15 +405,47 @@ canvas {
 
 /* Mobile Optimizations */
 @media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
     .container {
-        padding: 30px 20px;
+        padding: 25px 15px;
+        border-radius: 20px;
     }
     
     .habits-grid {
-        grid-template-columns: 1fr; /* Stack on mobile for better visibility */
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .tile-content {
+        padding: 12px 15px;
+        gap: 12px;
+        min-height: 55px;
+    }
+
+    .tile-icon {
+        font-size: 1.5rem;
+        width: 30px;
     }
 
     .cartoon-title {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
+    }
+    
+    .btn-primary {
+        padding: 15px;
+        font-size: 1.1rem;
+        min-height: 55px;
+    }
+    
+    .input-with-icon input, select {
+        font-size: 0.95rem;
+        padding: 12px 15px 12px 45px;
+    }
+    
+    .input-with-icon i {
+        left: 15px;
     }
 }

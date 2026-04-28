@@ -29,6 +29,18 @@ document.getElementById('logout-btn')?.addEventListener('click', () => {
 
 checkAuth();
 
+// Setup Tanggal Default
+document.addEventListener('DOMContentLoaded', () => {
+    const reportDate = document.getElementById('report-date');
+    if (reportDate) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        reportDate.value = `${yyyy}-${mm}-${dd}`;
+    }
+});
+
 // 1. Inisialisasi Library SignaturePad
 const canvas = document.getElementById('signature-pad');
 const signaturePad = new SignaturePad(canvas, {
@@ -113,15 +125,47 @@ habitForm.addEventListener('submit', async (e) => {
         return;
     }
 
+    const selectedDate = document.getElementById('report-date')?.value;
+
+    if (!selectedDate) {
+        alert('Ups! Kamu belum memilih tanggal kegiatan.');
+        return;
+    }
+
     const signatureImage = signaturePad.toDataURL(); // Data gambar base64
 
     // Tampilkan loading pada tombol
     const submitBtn = document.getElementById('submit-btn');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengecek...';
 
     try {
+        // Cek apakah siswa sudah mengisi di tanggal tersebut
+        const startOfDay = new Date(`${selectedDate}T00:00:00`).toISOString();
+        const endOfDay = new Date(`${selectedDate}T23:59:59.999`).toISOString();
+
+        const { data: existingLogs, error: checkError } = await supabaseClient
+            .from('habit_logs')
+            .select('id')
+            .eq('student_id', studentID)
+            .gte('created_at', startOfDay)
+            .lte('created_at', endOfDay);
+
+        if (checkError) throw checkError;
+
+        if (existingLogs && existingLogs.length > 0) {
+            alert(`Tunggu dulu! Kamu sudah mengirim laporan untuk tanggal ${selectedDate}. Hebat! Besok isi lagi ya.`);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            return;
+        }
+
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+        
+        // Atur waktu submission sesuai tanggal yang dipilih
+        const customDate = new Date(`${selectedDate}T12:00:00`).toISOString();
+
         const { data, error } = await supabaseClient
             .from('habit_logs')
             .insert([
@@ -129,7 +173,8 @@ habitForm.addEventListener('submit', async (e) => {
                     student_id: studentID, 
                     student_name: studentName, 
                     habits: selectedHabits, 
-                    signature_url: signatureImage 
+                    signature_url: signatureImage,
+                    created_at: customDate
                 }
             ]);
 
@@ -141,6 +186,10 @@ habitForm.addEventListener('submit', async (e) => {
         // Reset Form
         habitForm.reset();
         signaturePad.clear();
+        
+        // Kembalikan tanggal ke hari ini setelah reset
+        const today = new Date();
+        document.getElementById('report-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         
     } catch (err) {
         console.error('Error:', err);
