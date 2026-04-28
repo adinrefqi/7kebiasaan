@@ -1,4 +1,4 @@
-const CACHE_NAME = '7-kebiasaan-v3';
+const CACHE_NAME = '7-kebiasaan-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

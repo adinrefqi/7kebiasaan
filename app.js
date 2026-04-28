@@ -81,6 +81,9 @@ habitForm.addEventListener('submit', async (e) => {
 
     // Ambil data kebiasaan dengan perulangan pada setiap kartu
     const selectedHabits = [];
+    let isValid = true;
+    let missingDescHabitName = "";
+    
     const habitCards = document.querySelectorAll('.habit-card');
     
     habitCards.forEach(card => {
@@ -88,6 +91,11 @@ habitForm.addEventListener('submit', async (e) => {
         const description = card.querySelector('.habit-desc').value;
         
         if (checkbox.checked) {
+            if (description.trim() === "") {
+                isValid = false;
+                missingDescHabitName = checkbox.value;
+            }
+            
             selectedHabits.push({
                 habit: checkbox.value,
                 desc: description
@@ -97,6 +105,11 @@ habitForm.addEventListener('submit', async (e) => {
 
     if (selectedHabits.length === 0) {
         alert('Ups! Kamu belum memilih satu pun kebiasaan hari ini.');
+        return;
+    }
+
+    if (!isValid) {
+        alert(`Tunggu dulu! Kamu memilih "${missingDescHabitName}", tapi belum mengisi contoh kegiatannya. Yuk, diisi dulu!`);
         return;
     }
 
@@ -123,7 +136,7 @@ habitForm.addEventListener('submit', async (e) => {
         if (error) throw error;
 
         // Notifikasi Berhasil
-        alert('Alhamdulillah! Kebiasaan hebatmu hari ini sudah tercatat. Terus semangat ya!');
+        alert('Selamat! Kebiasaan hebatmu hari ini sudah tercatat. Terus semangat ya!');
         
         // Reset Form
         habitForm.reset();
