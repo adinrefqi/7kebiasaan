@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Guru - THHKtiv</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#2dd4bf 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Modal Styles */
+        #sig-modal {
+            display: none;
+        }
+        #sig-modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="text-teal-900 min-h-screen pb-12 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-teal-600 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 p-2 rounded-lg">
+                        <i class="fas fa-chalkboard-teacher text-xl"></i>
+                    </div>
+                    <h1 class="font-bold text-xl tracking-tight hidden sm:block">Dasbor Rekapitulasi Karakter Siswa</h1>
+                    <h1 class="font-bold text-xl tracking-tight sm:hidden">Dasbor Guru</h1>
+                </div>
+                <div>
+                    <a href="index.html" class="bg-teal-700 hover:bg-teal-800 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-mobile-screen"></i> <span class="hidden sm:inline">Ke Aplikasi Siswa</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        
+        <!-- Header & Filter -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-teal-800 tracking-tight mb-1">Halo, Bapak/Ibu Guru!</h2>
+                <p class="text-teal-600 font-medium">Pantau laporan harian kebiasaan hebat siswa secara real-time.</p>
+            </div>
+            <div class="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-teal-100 w-full md:w-auto">
+                <label for="date-filter" class="font-bold text-teal-700 whitespace-nowrap"><i class="fas fa-calendar-day mr-2"></i>Tanggal:</label>
+                <input type="date" id="date-filter" class="outline-none bg-transparent font-bold text-teal-900 cursor-pointer w-full">
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Card 1 -->
+            <div class="glass-card rounded-3xl p-6 flex items-center gap-6 border-l-8 border-l-teal-500">
+                <div class="w-16 h-16 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600 text-3xl shadow-inner">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Total Laporan Masuk</p>
+                    <h3 class="text-4xl font-extrabold text-teal-800 leading-none" id="stat-total-reports">0</h3>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="glass-card rounded-3xl p-6 flex items-center gap-6 border-l-8 border-l-amber-500">
+                <div class="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 text-3xl shadow-inner">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Siswa Mengisi Hari Ini</p>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-4xl font-extrabold text-teal-800 leading-none" id="stat-total-students">0</h3>
+                        <span class="text-sm font-bold text-gray-500">/ 52 Siswa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="glass-card rounded-3xl overflow-hidden shadow-sm">
+            <div class="p-6 border-b border-gray-100 bg-white/60 flex justify-between items-center">
+                <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2">
+                    <i class="fas fa-list-ul text-teal-500"></i> Detail Kegiatan
+                </h3>
+                <button id="refresh-btn" class="bg-teal-50 text-teal-700 hover:text-white hover:bg-teal-600 px-4 py-2 rounded-xl transition-colors font-bold text-sm flex items-center gap-2 border border-teal-200 hover:border-teal-600">
+                    <i class="fas fa-sync-alt"></i> Segarkan Data
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-teal-50/80 text-teal-800 text-xs uppercase tracking-widest">
+                            <th class="p-5 font-bold border-b border-teal-100 whitespace-nowrap">Waktu</th>
+                            <th class="p-5 font-bold border-b border-teal-100">Nama Siswa</th>
+                            <th class="p-5 font-bold border-b border-teal-100 whitespace-nowrap">ID Siswa</th>
+                            <th class="p-5 font-bold border-b border-teal-100 min-w-[350px]">Kebiasaan Dilakukan</th>
+                            <th class="p-5 font-bold border-b border-teal-100 text-center whitespace-nowrap">Bukti TTD</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="bg-white/80 divide-y divide-teal-50">
+                        <!-- Loading State -->
+                        <tr id="loading-row">
+                            <td colspan="5" class="p-12 text-center text-teal-600">
+                                <i class="fas fa-circle-notch fa-spin text-4xl mb-4"></i>
+                                <p class="font-bold text-lg">Mengambil data terbaru...</p>
+                            </td>
+                        </tr>
+                        <!-- Empty State (Hidden initially) -->
+                        <tr id="empty-row" class="hidden">
+                            <td colspan="5" class="p-16 text-center text-gray-500">
+                                <div class="bg-teal-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5 text-teal-300 text-5xl">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <p class="font-bold text-xl text-teal-800 mb-2">Belum Ada Data</p>
+                                <p class="text-md text-gray-500">Belum ada siswa yang mengisi laporan kebiasaan pada tanggal ini.</p>
+                            </td>
+                        </tr>
+                        <!-- Data rows will be injected here via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Signature Modal -->
+    <div id="sig-modal" class="fixed inset-0 z-50 bg-teal-900/40 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-teal-100">
+            <div class="flex justify-between items-center p-5 border-b border-gray-100 bg-teal-50/50">
+                <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2">
+                    <i class="fas fa-pen-nib text-teal-500"></i> Tanda Tangan Orang Tua
+                </h3>
+                <button id="close-modal" class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-8 flex justify-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+                <img id="modal-img" src="" alt="Tanda Tangan" class="max-h-64 border-2 border-dashed border-gray-300 rounded-xl bg-white p-3 shadow-sm w-full object-contain">
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // ==========================================
+        // 1. KONFIGURASI SUPABASE (GANTI JIKA PERLU)
+        // ==========================================
+        const SUPABASE_URL = "https://czqkvzamhpbkqmktiach.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6cWt2emFtaHBia3Fta3RpYWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzgyNTgsImV4cCI6MjA5MjkxNDI1OH0.N1ic3C4LsTFe1X3tXd_pf3L047dBqygG5cZHyZ769bs";
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // 2. INISIALISASI DOM
+        // ==========================================
+        const dateFilter = document.getElementById('date-filter');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const tableBody = document.getElementById('table-body');
+        const loadingRow = document.getElementById('loading-row');
+        const emptyRow = document.getElementById('empty-row');
+        const statReports = document.getElementById('stat-total-reports');
+        const statStudents = document.getElementById('stat-total-students');
+        
+        const sigModal = document.getElementById('sig-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalImg = document.getElementById('modal-img');
+
+        // ==========================================
+        // 3. SETUP DEFAULT TANGGAL LOKAL
+        // ==========================================
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        dateFilter.value = todayStr;
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ==========================================
+        // 4. FUNGSI FETCH DATA (REAL-TIME FILTERING)
+        // ==========================================
+        async function fetchLogs() {
+            const selectedDate = dateFilter.value;
+            if(!selectedDate) return;
+
+            // Membuat rentang waktu berdasarkan zona waktu lokal browser
+            const startOfDay = new Date(`${selectedDate}T00:00:00`);
+            const endOfDay = new Date(`${selectedDate}T23:59:59.999`);
+
+            // Konversi ke UTC ISO string untuk akurasi query ke database Supabase
+            const startIso = startOfDay.toISOString();
+            const endIso = endOfDay.toISOString();
+
+            // Reset UI
+            tableBody.querySelectorAll('.data-row').forEach(row => row.remove());
+            loadingRow.classList.remove('hidden');
+            emptyRow.classList.add('hidden');
+            statReports.innerText = '-';
+            statStudents.innerText = '-';
+
+            try {
+                // Query menggunakan filter waktu >= startIso dan <= endIso
+                const { data, error } = await supabaseClient
+                    .from('habit_logs')
+                    .select('*')
+                    .gte('created_at', startIso)
+                    .lte('created_at', endIso)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                renderData(data);
+            } catch (err) {
+                console.error("Gagal mengambil data:", err);
+                alert("Gagal memuat data dari Supabase. Pastikan koneksi lancar.");
+                loadingRow.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 5. FUNGSI RENDER DATA KE TABEL
+        // ==========================================
+        function renderData(data) {
+            loadingRow.classList.add('hidden');
+
+            if (!data || data.length === 0) {
+                emptyRow.classList.remove('hidden');
+                statReports.innerText = '0';
+                statStudents.innerText = '0';
+                return;
+            }
+
+            // Update Statistik
+            statReports.innerText = data.length;
+            const uniqueStudents = new Set(data.map(item => item.student_id));
+            statStudents.innerText = uniqueStudents.size;
+
+            // Looping baris data
+            data.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "data-row hover:bg-teal-50/50 transition-colors";
+
+                // Waktu
+                const tdTime = document.createElement('td');
+                tdTime.className = "p-5 text-sm font-bold text-teal-600 whitespace-nowrap";
+                tdTime.innerHTML = `<i class="far fa-clock mr-1 opacity-70"></i> ${formatTime(log.created_at)}`;
+
+                // Nama Siswa
+                const tdName = document.createElement('td');
+                tdName.className = "p-5 font-bold text-gray-800 text-base";
+                tdName.innerText = log.student_name || "Tanpa Nama";
+
+                // ID Siswa
+                const tdID = document.createElement('td');
+                tdID.className = "p-5 text-sm font-semibold text-gray-500";
+                tdID.innerText = log.student_id || "-";
+
+                // Kebiasaan (Badges)
+                const tdHabits = document.createElement('td');
+                tdHabits.className = "p-5";
+                const habitContainer = document.createElement('div');
+                habitContainer.className = "flex flex-wrap gap-2";
+                
+                if (log.habits && Array.isArray(log.habits)) {
+                    log.habits.forEach(h => {
+                        const badge = document.createElement('span');
+                        badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200";
+                        badge.innerHTML = `<span>${h.habit}</span>`;
+                        
+                        // Icon informasi jika ada deskripsi
+                        if(h.desc && h.desc.trim() !== "") {
+                            badge.title = h.desc;
+                            badge.classList.add('cursor-help', 'hover:bg-teal-200');
+                            badge.innerHTML += `<i class="fas fa-info-circle text-teal-500"></i>`;
+                        }
+                        habitContainer.appendChild(badge);
+                    });
+                }
+                tdHabits.appendChild(habitContainer);
+
+                // TTD (Bukti)
+                const tdSig = document.createElement('td');
+                tdSig.className = "p-5 text-center";
+                if (log.signature_url) {
+                    const viewBtn = document.createElement('button');
+                    viewBtn.className = "bg-white border border-teal-300 text-teal-600 hover:bg-teal-600 hover:text-white px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1";
+                    viewBtn.innerHTML = '<i class="fas fa-signature text-base"></i> Lihat';
+                    viewBtn.onclick = () => openSignatureModal(log.signature_url);
+                    tdSig.appendChild(viewBtn);
+                } else {
+                    tdSig.innerHTML = '<span class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded-md">Kosong</span>';
+                }
+
+                tr.appendChild(tdTime);
+                tr.appendChild(tdName);
+                tr.appendChild(tdID);
+                tr.appendChild(tdHabits);
+                tr.appendChild(tdSig);
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // 6. LOGIKA MODAL TTD
+        // ==========================================
+        function openSignatureModal(url) {
+            modalImg.src = url;
+            sigModal.classList.add('active');
+        }
+
+        function closeSignatureModal() {
+            sigModal.classList.remove('active');
+            setTimeout(() => { modalImg.src = ''; }, 300);
+        }
+
+        // ==========================================
+        // 7. EVENT LISTENERS & INIT
+        // ==========================================
+        dateFilter.addEventListener('change', fetchLogs);
+        
+        refreshBtn.addEventListener('click', () => {
+            const icon = refreshBtn.querySelector('i');
+            icon.classList.add('fa-spin');
+            fetchLogs().then(() => {
+                setTimeout(() => icon.classList.remove('fa-spin'), 500);
+            });
+        });
+        
+        closeModalBtn.addEventListener('click', closeSignatureModal);
+        sigModal.addEventListener('click', (e) => {
+            if (e.target === sigModal) closeSignatureModal();
+        });
+
+        // Load data saat halaman pertama dibuka
+        document.addEventListener('DOMContentLoaded', fetchLogs);
+    </script>
+</body>
+</html>
