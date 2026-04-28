@@ -14,6 +14,8 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d9488">
     <script src="data_siswa.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="login-page">
     <div class="container login-container">
@@ -21,7 +23,7 @@
             <div class="hero-illustration">
                 <img src="karakter_siswa_indonesia_ceria.png" alt="Karakter Siswa Indonesia" class="student-img">
             </div>
-            <h1 style="text-align: center; color: #0f766e; font-weight: 800; font-size: 1.8rem; margin-top: -10px; margin-bottom: 25px; letter-spacing: 1px;">SMP THHK</h1>
+            <h1 style="text-align: center; color: #0f766e; font-weight: 800; font-size: 1.8rem; margin-top: -10px; margin-bottom: 25px; letter-spacing: 1px;">SMP THHKtiv</h1>
             <h1 class="cartoon-title">Halo Sahabat!</h1>
             <p>Silakan masuk untuk mencatat kebiasaan hebatmu.</p>
         </header>
@@ -60,25 +62,54 @@
     </div>
 
     <script>
-        document.getElementById('login-form').addEventListener('submit', (e) => {
+        // Supabase Initialization
+        const SUPABASE_URL = "https://czqkvzamhpbkqmktiach.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6cWt2emFtaHBia3Fta3RpYWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzgyNTgsImV4cCI6MjA5MjkxNDI1OH0.N1ic3C4LsTFe1X3tXd_pf3L047dBqygG5cZHyZ769bs";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const idInput = document.getElementById('student-id').value.trim();
             const pin = document.getElementById('student-pin').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
             // Cari siswa berdasarkan ID
             const student = window.STUDENT_DATA.find(s => s.id === idInput);
 
             if (student) {
-                // PIN dummy 1234
-                if (pin === "1234") {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('studentID', student.id);
-                    localStorage.setItem('studentName', student.nama);
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memeriksa...';
+                submitBtn.disabled = true;
+
+                try {
+                    // Cek pin khusus di Supabase
+                    const { data, error } = await supabaseClient
+                        .from('student_pins')
+                        .select('pin')
+                        .eq('student_id', idInput);
+
+                    let correctPin = "1234"; // PIN default
                     
-                    alert('Selamat datang, ' + student.nama + '! Yuk catat kebiasaanmu.');
-                    window.location.href = 'index.html';
-                } else {
-                    alert('PIN salah. Coba lagi ya! (Tips: PIN default adalah 1234)');
+                    // Jika ada data PIN khusus untuk anak ini di Supabase, gunakan itu
+                    if (data && data.length > 0) {
+                        correctPin = data[0].pin;
+                    }
+
+                    if (pin === correctPin) {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('studentID', student.id);
+                        localStorage.setItem('studentName', student.nama);
+                        
+                        alert('Selamat datang, ' + student.nama + '! Yuk catat kebiasaanmu.');
+                        window.location.href = 'index.html';
+                    } else {
+                        alert('PIN salah. Coba lagi ya! (Jika belum diganti, PIN default adalah 1234)');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Gangguan koneksi saat mengecek PIN. Silakan coba lagi.");
+                } finally {
+                    submitBtn.innerHTML = 'Masuk Sekarang <i class="fas fa-sign-in-alt"></i>';
+                    submitBtn.disabled = false;
                 }
             } else {
                 alert('ID Siswa tidak ditemukan. Pastikan formatnya benar (Contoh: 08-001)');

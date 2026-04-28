@@ -222,6 +222,44 @@ habitForm.addEventListener('submit', async (e) => {
     }
 });
 
+// Ganti PIN
+const changePinBtn = document.getElementById('change-pin-btn');
+if (changePinBtn) {
+    changePinBtn.addEventListener('click', async () => {
+        const studentID = localStorage.getItem('studentID');
+        const newPin = prompt("Masukkan 4 digit PIN BARU Anda:\n(Boleh kombinasi angka apa saja)");
+        
+        if (!newPin) return; // Batal
+        
+        if (newPin.length !== 4 || isNaN(newPin)) {
+            alert("PIN harus berupa 4 digit angka!");
+            return;
+        }
+
+        const originalText = changePinBtn.innerHTML;
+        changePinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+        changePinBtn.disabled = true;
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('student_pins')
+                .upsert([
+                    { student_id: studentID, pin: newPin }
+                ], { onConflict: 'student_id' });
+
+            if (error) throw error;
+            
+            alert(`Berhasil! PIN kamu sudah diganti menjadi: ${newPin}\nIngat baik-baik ya, jangan sampai lupa!`);
+        } catch (err) {
+            console.error(err);
+            alert("Gagal mengganti PIN. Pastikan koneksi lancar.");
+        } finally {
+            changePinBtn.innerHTML = originalText;
+            changePinBtn.disabled = false;
+        }
+    });
+}
+
 // 5. Registrasi Service Worker untuk PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
