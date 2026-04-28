@@ -1,7 +1,7 @@
 // 0. Konfigurasi Supabase
 const SUPABASE_URL = "https://czqkvzamhpbkqmktiach.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6cWt2emFtaHBia3Fta3RpYWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzgyNTgsImV4cCI6MjA5MjkxNDI1OH0.N1ic3C4LsTFe1X3tXd_pf3L047dBqygG5cZHyZ769bs"; // Key anon
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 0. Proteksi Halaman & Data Pengguna
 const checkAuth = () => {
@@ -109,7 +109,7 @@ habitForm.addEventListener('submit', async (e) => {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('habit_logs')
             .insert([
                 { 
