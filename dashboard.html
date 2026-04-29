@@ -187,8 +187,8 @@
 
         <!-- Top 3 Siswa -->
         <div class="bg-white rounded-3xl shadow-sm border border-teal-100 p-6 mb-8 hidden" id="top-students-container">
-            <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2 mb-6">
-                <i class="fas fa-trophy text-yellow-500 text-xl"></i> 3 Siswa Paling Aktif (Semua Waktu)
+            <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2 mb-6" id="top-students-title">
+                <i class="fas fa-trophy text-yellow-500 text-xl"></i> 3 Siswa Paling Aktif
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="top-students-grid">
                 <!-- Data akan disisipkan di sini -->
@@ -358,15 +358,49 @@
         // ==========================================
         async function fetchTopStudents() {
             try {
-                // Ambil semua data (untuk menentukan siapa yang paling sering mengisi)
+                // Tentukan Semester Berjalan
+                const today = new Date();
+                const currentMonth = today.getMonth() + 1; // 1-12
+                const currentYear = today.getFullYear();
+                
+                let startMonth, endMonth, startYear, endYear, semesterName;
+                
+                if (currentMonth >= 7 && currentMonth <= 12) {
+                    // Semester 1: Juli - Desember
+                    semesterName = "Semester 1";
+                    startMonth = '07';
+                    endMonth = '12';
+                    startYear = currentYear;
+                    endYear = currentYear;
+                } else {
+                    // Semester 2: Januari - Juni
+                    semesterName = "Semester 2";
+                    startMonth = '01';
+                    endMonth = '06';
+                    startYear = currentYear;
+                    endYear = currentYear;
+                }
+
+                const startDateStr = `${startYear}-${startMonth}-01T00:00:00.000Z`;
+                const lastDay = new Date(endYear, parseInt(endMonth), 0).getDate();
+                const endDateStr = `${endYear}-${endMonth}-${lastDay}T23:59:59.999Z`;
+
+                // Ambil data sesuai rentang semester
                 const { data, error } = await supabaseClient
                     .from('habit_logs')
-                    .select('student_name, habits');
+                    .select('student_name, habits')
+                    .gte('created_at', startDateStr)
+                    .lte('created_at', endDateStr);
 
                 if (error) throw error;
                 
                 const container = document.getElementById('top-students-container');
                 const grid = document.getElementById('top-students-grid');
+                const title = document.getElementById('top-students-title');
+                
+                if (title) {
+                    title.innerHTML = `<i class="fas fa-trophy text-yellow-500 text-xl"></i> 3 Siswa Paling Aktif (${semesterName})`;
+                }
                 
                 if (!data || data.length === 0) {
                     container.classList.add('hidden');
