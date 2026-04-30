@@ -758,13 +758,21 @@ body.dark-mode {
     background-image: radial-gradient(#334155 0.5px, transparent 0.5px);
 }
 
-body.dark-mode .habit-tile {
+body.dark-mode .habit-card {
     background: var(--card-bg);
     border-color: var(--border-color);
 }
-body.dark-mode .habit-tile:hover {
+body.dark-mode .habit-card:hover {
+    background: #0f172a;
+    border-color: var(--border-color);
+}
+body.dark-mode .tile-content {
+    background: #0f172a;
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+body.dark-mode .tile-content:hover {
     border-color: var(--primary-color);
-    background: #111827;
 }
 body.dark-mode input[type="checkbox"]:checked + .tile-content {
     background: #134e4a; /* Teal 900 */
