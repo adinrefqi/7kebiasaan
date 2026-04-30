@@ -202,8 +202,16 @@ habitForm.addEventListener('submit', async (e) => {
 
         if (error) throw error;
 
-        // Notifikasi Berhasil
-        alert('Selamat! Kebiasaan hebatmu hari ini sudah tercatat. Terus semangat ya!');
+        // Notifikasi Berhasil (Dinamis berdasarkan jumlah kebiasaan)
+        let successMessage = "";
+        if (selectedHabits.length <= 2) {
+            successMessage = "Langkah awal yang bagus! Besok usahakan tambah kebiasaan baik lainnya ya, kamu pasti bisa lebih hebat lagi! 💪";
+        } else if (selectedHabits.length <= 5) {
+            successMessage = "Luar biasa! Kamu sudah sangat rajin hari ini. Pertahankan terus semangatmu! 🔥";
+        } else {
+            successMessage = "Sempurna! Kamu adalah contoh siswa teladan hari ini. Keren banget! 🌟";
+        }
+        alert(successMessage);
         
         // Reset Form
         habitForm.reset();
@@ -260,7 +268,75 @@ if (changePinBtn) {
     });
 }
 
-// 5. Registrasi Service Worker untuk PWA
+// 5. Fitur Motivasi (Pesan Guru & Peringatan Sistem)
+async function checkMotivation() {
+    const studentID = localStorage.getItem('studentID');
+    if (!studentID) return;
+
+    const banner = document.getElementById('motivation-banner');
+    if (!banner) return;
+
+    try {
+        // 1. Cek Pesan dari Guru
+        const { data: messages, error: msgErr } = await supabaseClient
+            .from('teacher_messages')
+            .select('*')
+            .eq('student_id', studentID)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (!msgErr && messages && messages.length > 0) {
+            const msg = messages[0];
+            banner.className = "banner-msg banner-teacher";
+            banner.innerHTML = `
+                <div style="font-size: 1.5rem; color: #3b82f6;"><i class="fas fa-envelope-open-text"></i></div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #60a5fa; margin-bottom: 2px;">Pesan dari Guru</div>
+                    <p>"${msg.message}"</p>
+                    <button class="btn-read" onclick="markMessageRead('${msg.id}')">Tutup & Tandai Dibaca</button>
+                </div>
+            `;
+            return; // Jika ada pesan guru, jangan tampilkan peringatan sistem
+        }
+
+        // 2. Cek Frekuensi Pengisian
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const { data: logs, error: logErr } = await supabaseClient
+            .from('habit_logs')
+            .select('id')
+            .eq('student_id', studentID)
+            .gte('created_at', sevenDaysAgo.toISOString());
+
+        if (!logErr && logs && logs.length <= 2) {
+            banner.className = "banner-msg banner-warning";
+            banner.innerHTML = `
+                <div style="font-size: 1.5rem; color: #ef4444;"><i class="fas fa-exclamation-circle"></i></div>
+                <div>
+                    <p>Halo Sahabat! Belakangan ini kamu jarang mencatat kebiasaanmu ya? Yuk, mulai disiplin lagi. Kesuksesan dimulai dari kebiasaan kecil setiap hari lho! 🌱</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error("Gagal mengecek motivasi:", err);
+    }
+}
+
+window.markMessageRead = async function(id) {
+    const banner = document.getElementById('motivation-banner');
+    if (banner) {
+        banner.innerHTML = '';
+        banner.className = '';
+    }
+    await supabaseClient.from('teacher_messages').update({ is_read: true }).eq('id', id);
+};
+
+if (localStorage.getItem('isLoggedIn') === 'true') {
+    checkMotivation();
+}
+
+// 6. Registrasi Service Worker untuk PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
