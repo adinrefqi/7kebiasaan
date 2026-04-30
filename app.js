@@ -213,6 +213,9 @@ habitForm.addEventListener('submit', async (e) => {
         }
         alert(successMessage);
         
+        // Update gamification bar without reloading
+        loadGamificationStats();
+        
         // Reset Form
         habitForm.reset();
         signaturePad.clear();
@@ -323,6 +326,111 @@ async function checkMotivation() {
     }
 }
 
+// 6. Fitur Gamifikasi (XP, Level, Streaks)
+async function loadGamificationStats() {
+    const studentID = localStorage.getItem('studentID');
+    if (!studentID) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('habit_logs')
+            .select('created_at, habits')
+            .eq('student_id', studentID)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        let totalXP = 0;
+        let uniqueDates = new Set();
+
+        data.forEach(log => {
+            // Hitung XP (1 kebiasaan = 10 XP)
+            let habitsArr = log.habits;
+            if (typeof habitsArr === 'string') {
+                try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
+            }
+            if (Array.isArray(habitsArr)) {
+                totalXP += (habitsArr.length * 10);
+            }
+
+            // Catat tanggal unik untuk streak
+            const dateStr = log.created_at.split('T')[0];
+            uniqueDates.add(dateStr);
+        });
+
+        // Tentukan Level
+        let levelName = "Pemula"; let levelIcon = "🌱"; let nextLevelXP = 100; let progress = 0;
+        if (totalXP < 100) {
+            levelName = "Pemula"; levelIcon = "🌱"; nextLevelXP = 100;
+            progress = (totalXP / 100) * 100;
+        } else if (totalXP < 300) {
+            levelName = "Pelajar Giat"; levelIcon = "🚀"; nextLevelXP = 300;
+            progress = ((totalXP - 100) / 200) * 100;
+        } else if (totalXP < 600) {
+            levelName = "Ksatria Disiplin"; levelIcon = "⚔️"; nextLevelXP = 600;
+            progress = ((totalXP - 300) / 300) * 100;
+        } else {
+            levelName = "Pahlawan Kebiasaan"; levelIcon = "👑"; nextLevelXP = totalXP;
+            progress = 100;
+        }
+
+        // Hitung Streak
+        let currentStreak = 0;
+        let d = new Date();
+        const todayStr = d.toISOString().split('T')[0];
+        d.setDate(d.getDate() - 1);
+        const yesterdayStr = d.toISOString().split('T')[0];
+
+        let dateToCheck = new Date();
+        if (!uniqueDates.has(todayStr) && uniqueDates.has(yesterdayStr)) {
+            // Jika hari ini belum mengisi, mulai hitung streak dari kemarin
+            dateToCheck.setDate(dateToCheck.getDate() - 1);
+        }
+
+        while (true) {
+            const checkStr = dateToCheck.toISOString().split('T')[0];
+            if (uniqueDates.has(checkStr)) {
+                currentStreak++;
+                dateToCheck.setDate(dateToCheck.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+
+        // Render UI
+        const bar = document.getElementById('gamification-bar');
+        if (bar) {
+            bar.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="font-weight: 800; color: #0f766e; font-size: 1.1rem;">${levelIcon} Level: ${levelName}</div>
+                    <div style="color: #f59e0b; font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-fire" style="color: ${currentStreak > 0 ? '#ef4444' : '#d1d5db'}"></i> ${currentStreak} Hari Beruntun
+                    </div>
+                </div>
+                <div style="background: #ccfbf1; border-radius: 9999px; height: 12px; width: 100%; overflow: hidden; border: 1px solid #99f6e4;">
+                    <div style="background: linear-gradient(to right, #2dd4bf, #0d9488); height: 100%; border-radius: 9999px; transition: width 1s ease-in-out; width: ${progress}%"></div>
+                </div>
+                <div style="text-align: right; font-size: 0.75rem; color: #0d9488; font-weight: 800; margin-top: 5px;">${totalXP} / ${nextLevelXP} XP</div>
+            `;
+            bar.classList.remove('hidden');
+            bar.style.display = 'block';
+
+            // Beri Lencana jika mencapai kelipatan 7 hari
+            if (currentStreak > 0 && currentStreak % 7 === 0) {
+                const lastBadgeAlert = localStorage.getItem('lastBadgeAlert');
+                if (lastBadgeAlert !== currentStreak.toString()) {
+                    setTimeout(() => {
+                        alert(`🎉 SELAMAT! Kamu mendapatkan Lencana: "Pejuang ${currentStreak} Hari"!\nKamu berhasil konsisten tanpa putus. Terus pertahankan prestasimu! 🏅`);
+                    }, 1000);
+                    localStorage.setItem('lastBadgeAlert', currentStreak.toString());
+                }
+            }
+        }
+    } catch(e) {
+        console.error("Gagal memuat gamifikasi:", e);
+    }
+}
+
 window.markMessageRead = async function(id) {
     const banner = document.getElementById('motivation-banner');
     if (banner) {
@@ -334,9 +442,10 @@ window.markMessageRead = async function(id) {
 
 if (localStorage.getItem('isLoggedIn') === 'true') {
     checkMotivation();
+    loadGamificationStats();
 }
 
-// 6. Registrasi Service Worker untuk PWA
+// 7. Registrasi Service Worker untuk PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')

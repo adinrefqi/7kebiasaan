@@ -188,13 +188,30 @@
             </div>
         </div>
 
-        <!-- Top 3 Siswa -->
-        <div class="bg-white rounded-3xl shadow-sm border border-teal-100 p-6 mb-8 hidden" id="top-students-container">
-            <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2 mb-6" id="top-students-title">
-                <i class="fas fa-trophy text-yellow-500 text-xl"></i> 3 Siswa Paling Aktif
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="top-students-grid">
-                <!-- Data akan disisipkan di sini -->
+        <!-- Top 3 Siswa & Leaderboard Bulanan Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Top 3 Siswa -->
+            <div class="bg-white rounded-3xl shadow-sm border border-teal-100 p-6 hidden flex-col" id="top-students-container">
+                <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2 mb-6" id="top-students-title">
+                    <i class="fas fa-trophy text-yellow-500 text-xl"></i> 3 Siswa Paling Aktif
+                </h3>
+                <div class="flex flex-col gap-4" id="top-students-grid">
+                    <!-- Data akan disisipkan di sini -->
+                </div>
+            </div>
+
+            <!-- Leaderboard Bulanan -->
+            <div class="bg-white rounded-3xl shadow-sm border border-amber-100 p-6 hidden flex-col" id="leaderboard-container">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-lg text-amber-800 flex items-center gap-2" id="leaderboard-title">
+                        <i class="fas fa-crown text-amber-500 text-xl"></i> Papan Peringkat (Bulan Ini)
+                    </h3>
+                </div>
+                <div class="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex-grow">
+                    <ul id="leaderboard-list" class="divide-y divide-amber-200/50">
+                        <!-- Data akan disisipkan di sini -->
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -348,6 +365,7 @@
                 if (teacherNameDisplay) teacherNameDisplay.innerText = name;
                 fetchLogs(); // Hanya muat data setelah login
                 fetchTopStudents(); // Muat data top 3
+                fetchLeaderboardBulanan(); // Muat leaderboard
             } else {
                 loginOverlay.style.display = 'flex';
                 document.body.style.overflow = 'hidden'; // Kunci scroll
@@ -497,9 +515,97 @@
                 });
 
                 container.classList.remove('hidden');
+                container.classList.add('flex');
 
             } catch (err) {
                 console.error("Gagal mengambil top students:", err);
+            }
+        }
+
+        // ==========================================
+        // 4.6 FUNGSI FETCH LEADERBOARD BULANAN (GAMIFIKASI)
+        // ==========================================
+        async function fetchLeaderboardBulanan() {
+            try {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                
+                const startDateStr = `${year}-${month}-01T00:00:00.000Z`;
+                const lastDay = new Date(year, today.getMonth() + 1, 0).getDate();
+                const endDateStr = `${year}-${month}-${lastDay}T23:59:59.999Z`;
+
+                const { data, error } = await supabaseClient
+                    .from('habit_logs')
+                    .select('student_name, habits')
+                    .gte('created_at', startDateStr)
+                    .lte('created_at', endDateStr);
+
+                if (error) throw error;
+
+                const container = document.getElementById('leaderboard-container');
+                const list = document.getElementById('leaderboard-list');
+
+                if (!data || data.length === 0) {
+                    container.classList.add('hidden');
+                    container.classList.remove('flex');
+                    return;
+                }
+
+                // Hitung XP
+                const studentStats = {};
+                data.forEach(log => {
+                    const name = log.student_name || "Tanpa Nama";
+                    if (!studentStats[name]) studentStats[name] = 0;
+                    
+                    let habitsArr = log.habits;
+                    if (typeof habitsArr === 'string') {
+                        try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
+                    }
+                    if (Array.isArray(habitsArr)) {
+                        studentStats[name] += (habitsArr.length * 10);
+                    }
+                });
+
+                // Urutkan DESC dan ambil Top 5
+                const sorted = Object.entries(studentStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+                list.innerHTML = '';
+                sorted.forEach((student, idx) => {
+                    let rankIcon = `<span class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-gray-500 shadow-sm border border-gray-100">${idx + 1}</span>`;
+                    if (idx === 0) { rankIcon = `<i class="fas fa-crown text-yellow-500 text-2xl drop-shadow-md"></i>`; }
+                    else if (idx === 1) { rankIcon = `<i class="fas fa-medal text-gray-400 text-2xl drop-shadow-md"></i>`; }
+                    else if (idx === 2) { rankIcon = `<i class="fas fa-medal text-amber-600 text-2xl drop-shadow-md"></i>`; }
+
+                    // Tentukan Level berdasarkan XP
+                    let levelName = "Pemula";
+                    if (student[1] >= 600) levelName = "Pahlawan";
+                    else if (student[1] >= 300) levelName = "Ksatria";
+                    else if (student[1] >= 100) levelName = "Pelajar Giat";
+
+                    list.innerHTML += `
+                        <li class="py-3 flex justify-between items-center hover:bg-amber-100/50 transition-colors px-2 rounded-xl">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 flex justify-center">${rankIcon}</div>
+                                <div>
+                                    <div class="font-extrabold text-amber-900">${student[0]}</div>
+                                    <div class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md inline-block">Lv: ${levelName}</div>
+                                </div>
+                            </div>
+                            <div class="font-black text-amber-600 bg-white px-3 py-1 rounded-xl shadow-sm border border-amber-100">
+                                ${student[1]} XP
+                            </div>
+                        </li>
+                    `;
+                });
+                
+                const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                document.getElementById('leaderboard-title').innerHTML = `<i class="fas fa-crown text-amber-500 text-xl"></i> Peringkat Top 5 (${monthNames[today.getMonth()]})`;
+                container.classList.remove('hidden');
+                container.classList.add('flex');
+
+            } catch (e) {
+                console.error("Gagal load leaderboard:", e);
             }
         }
 
@@ -649,7 +755,7 @@
         refreshBtn.addEventListener('click', () => {
             const icon = refreshBtn.querySelector('i');
             icon.classList.add('fa-spin');
-            Promise.all([fetchLogs(), fetchTopStudents()]).then(() => {
+            Promise.all([fetchLogs(), fetchTopStudents(), fetchLeaderboardBulanan()]).then(() => {
                 setTimeout(() => icon.classList.remove('fa-spin'), 500);
             });
         });
