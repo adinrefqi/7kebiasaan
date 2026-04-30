@@ -56,6 +56,26 @@ body {
     transform: scale(1.05);
 }
 
+.btn-secondary {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-secondary:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
 .container {
     width: 100%;
     max-width: 550px;
@@ -198,6 +218,171 @@ label {
     margin-top: 10px;
     font-size: 0.8rem;
     display: inline-block;
+}
+
+/* Modal Profil & Riwayat */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(19, 78, 74, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-card {
+    background: #ffffff;
+    border-radius: 25px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+}
+.modal-overlay.active .modal-card {
+    transform: translateY(0);
+}
+.profile-modal-card {
+    height: 85vh;
+}
+.modal-header {
+    background: #f0fdfa;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccfbf1;
+}
+.modal-header h3 {
+    color: #0f766e;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+}
+.btn-close {
+    background: #fef2f2;
+    color: #ef4444;
+    border: none;
+    width: 35px; height: 35px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-close:hover {
+    background: #ef4444; color: white;
+}
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    background: #f8fafc;
+    flex-grow: 1;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 10px;
+}
+.profile-section {
+    background: white;
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+.profile-section h4 {
+    color: #0f766e;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+.section-title-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.section-title-flex h4 { margin: 0; text-align: left; }
+.badge-count {
+    background: #ccfbf1;
+    color: #0d9488;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+.chart-container {
+    position: relative;
+    height: 200px;
+    width: 100%;
+}
+.journal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.journal-item {
+    padding: 15px;
+    background: #f0fdfa;
+    border-radius: 15px;
+    border-left: 4px solid #14b8a6;
+}
+.journal-date {
+    font-size: 0.8rem;
+    color: #0d9488;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+.journal-habit {
+    background: #14b8a6;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+.journal-desc {
+    font-size: 0.85rem;
+    color: #475569;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-style: italic;
+    margin-left: 5px;
+    border: 1px solid #e2e8f0;
+}
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    padding: 20px;
 }
 
 select {

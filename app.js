@@ -326,6 +326,35 @@ async function checkMotivation() {
     }
 }
 
+// Helper: Penentu Tantangan Mingguan
+function getChallengeForDate(dateObj) {
+    const habits = [
+        { id: "Bangun Pagi", title: "Minggu Semangat Pagi", badge: "🌅" },
+        { id: "Beribadah", title: "Minggu Khusyuk", badge: "🤲" },
+        { id: "Berolahraga", title: "Minggu Keringat Sehat", badge: "🏃‍♂️" },
+        { id: "Makan Sehat", title: "Minggu Gizi Seimbang", badge: "🥗" },
+        { id: "Gemar Belajar", title: "Minggu Si Kutu Buku", badge: "📚" },
+        { id: "Bermasyarakat", title: "Minggu Peduli Sesama", badge: "🤝" },
+        { id: "Tidur Cepat/Cukup", title: "Minggu Tidur Tepat Waktu", badge: "😴" }
+    ];
+    // Hitung minggu sejak epoch, offset 4 hari agar pivot di hari Senin
+    const weekNum = Math.floor((dateObj.getTime() - 345600000) / 604800000);
+    return habits[Math.abs(weekNum % 7)];
+}
+
+function renderWeeklyChallenge() {
+    const currentChallenge = getChallengeForDate(new Date());
+    const badgeEl = document.getElementById('challenge-badge');
+    const titleEl = document.getElementById('challenge-title');
+    const targetEl = document.getElementById('challenge-target');
+    
+    if (badgeEl && titleEl && targetEl) {
+        badgeEl.innerText = currentChallenge.badge;
+        titleEl.innerText = currentChallenge.title;
+        targetEl.innerText = currentChallenge.id;
+    }
+}
+
 // 6. Fitur Gamifikasi (XP, Level, Streaks)
 async function loadGamificationStats() {
     const studentID = localStorage.getItem('studentID');
@@ -344,13 +373,22 @@ async function loadGamificationStats() {
         let uniqueDates = new Set();
 
         data.forEach(log => {
-            // Hitung XP (1 kebiasaan = 10 XP)
+            const logDate = new Date(log.created_at);
+            const challengeForWeek = getChallengeForDate(logDate);
+
+            // Hitung XP (Normal = 10 XP, Tantangan Mingguan = 20 XP)
             let habitsArr = log.habits;
             if (typeof habitsArr === 'string') {
                 try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
             }
             if (Array.isArray(habitsArr)) {
-                totalXP += (habitsArr.length * 10);
+                habitsArr.forEach(h => {
+                    if (h.habit === challengeForWeek.id) {
+                        totalXP += 20;
+                    } else {
+                        totalXP += 10;
+                    }
+                });
             }
 
             // Catat tanggal unik untuk streak
@@ -442,10 +480,147 @@ window.markMessageRead = async function(id) {
 
 if (localStorage.getItem('isLoggedIn') === 'true') {
     checkMotivation();
+    renderWeeklyChallenge();
     loadGamificationStats();
 }
 
-// 7. Registrasi Service Worker untuk PWA
+// 7. Fitur Profil & Riwayat Jurnal
+let habitChartInstance = null;
+
+async function loadProfileData() {
+    const studentID = localStorage.getItem('studentID');
+    if (!studentID) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('habit_logs')
+            .select('created_at, habits')
+            .eq('student_id', studentID)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // 1. Render Jurnal Riwayat
+        const journalList = document.getElementById('journal-list');
+        const journalCount = document.getElementById('journal-count');
+        journalList.innerHTML = '';
+        
+        if (!data || data.length === 0) {
+            journalList.innerHTML = '<div class="empty-state">Belum ada catatan jurnal. Mulai isi kebiasaanmu ya!</div>';
+            journalCount.innerText = '0 Catatan';
+        } else {
+            journalCount.innerText = `${data.length} Catatan`;
+            data.forEach(log => {
+                const dateObj = new Date(log.created_at);
+                const dateStr = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                
+                let habitsArr = log.habits;
+                if (typeof habitsArr === 'string') {
+                    try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
+                }
+
+                let habitsHtml = '';
+                if (Array.isArray(habitsArr)) {
+                    habitsArr.forEach(h => {
+                        habitsHtml += `
+                            <div style="margin-bottom: 8px;">
+                                <span class="journal-habit">${h.habit}</span>
+                                ${h.desc && h.desc.trim() !== '' ? `<div class="journal-desc">"${h.desc}"</div>` : ''}
+                            </div>
+                        `;
+                    });
+                }
+
+                journalList.innerHTML += `
+                    <div class="journal-item">
+                        <div class="journal-date"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
+                        <div>${habitsHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // 2. Render Grafik 7 Hari Terakhir
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const habitCounts = {
+            "Bangun Pagi": 0, "Beribadah": 0, "Berolahraga": 0,
+            "Makan Sehat": 0, "Gemar Belajar": 0, "Bermasyarakat": 0, "Tidur Cepat/Cukup": 0
+        };
+
+        data.forEach(log => {
+            const logDate = new Date(log.created_at);
+            if (logDate >= sevenDaysAgo) {
+                let habitsArr = log.habits;
+                if (typeof habitsArr === 'string') {
+                    try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
+                }
+                if (Array.isArray(habitsArr)) {
+                    habitsArr.forEach(h => {
+                        if (habitCounts[h.habit] !== undefined) {
+                            habitCounts[h.habit]++;
+                        }
+                    });
+                }
+            }
+        });
+
+        const ctx = document.getElementById('habitChart').getContext('2d');
+        if (habitChartInstance) { habitChartInstance.destroy(); }
+
+        habitChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Bangun', 'Ibadah', 'Olahraga', 'Makan', 'Belajar', 'Sosial', 'Tidur'],
+                datasets: [{
+                    label: 'Jumlah (7 Hari)',
+                    data: [
+                        habitCounts["Bangun Pagi"], habitCounts["Beribadah"], habitCounts["Berolahraga"],
+                        habitCounts["Makan Sehat"], habitCounts["Gemar Belajar"], habitCounts["Bermasyarakat"], habitCounts["Tidur Cepat/Cukup"]
+                    ],
+                    backgroundColor: 'rgba(20, 184, 166, 0.7)',
+                    borderColor: '#0d9488',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
+                    x: { ticks: { font: { size: 10 } } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+    } catch(e) {
+        console.error("Gagal memuat profil:", e);
+    }
+}
+
+// Event Listener Modal Profil
+const profileBtn = document.getElementById('profile-btn');
+const profileModal = document.getElementById('profile-modal');
+const closeProfileBtn = document.getElementById('close-profile-modal');
+
+if (profileBtn) {
+    profileBtn.addEventListener('click', () => {
+        profileModal.classList.add('active');
+        loadProfileData();
+    });
+}
+if (closeProfileBtn) {
+    closeProfileBtn.addEventListener('click', () => {
+        profileModal.classList.remove('active');
+    });
+}
+
+// 8. Registrasi Service Worker untuk PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')

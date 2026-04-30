@@ -215,17 +215,33 @@
             </div>
         </div>
 
+        <!-- Peringatan Siswa Pasif -->
+        <div class="bg-white rounded-3xl shadow-sm border border-red-100 p-6 mb-8 hidden" id="passive-students-container">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-red-800 flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i> Siswa Perlu Perhatian (Pasif > 7 Hari)
+                </h3>
+                <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-md font-bold">Klik nama untuk kirim pesan</span>
+            </div>
+            <div class="flex flex-wrap gap-2" id="passive-students-list">
+                <!-- Data disisipkan via JS -->
+            </div>
+        </div>
+
         <!-- Table Section -->
         <div class="glass-card rounded-3xl overflow-hidden shadow-sm">
-            <div class="p-6 border-b border-gray-100 bg-white/60 flex justify-between items-center">
+            <div class="p-6 border-b border-gray-100 bg-white/60 flex justify-between items-center flex-wrap gap-4">
                 <h3 class="font-bold text-lg text-teal-800 flex items-center gap-2">
                     <i class="fas fa-list-ul text-teal-500"></i> Detail Kegiatan
                 </h3>
-                <div class="flex gap-2">
-                    <button id="send-msg-btn" class="bg-blue-50 text-blue-700 hover:text-white hover:bg-blue-600 px-4 py-2 rounded-xl transition-colors font-bold text-sm flex items-center gap-2 border border-blue-200 hover:border-blue-600">
+                <div class="flex flex-wrap gap-2">
+                    <button id="export-btn" class="bg-emerald-50 text-emerald-700 hover:text-white hover:bg-emerald-600 px-4 py-2 rounded-xl transition-colors font-bold text-sm flex items-center gap-2 border border-emerald-200 hover:border-emerald-600 shadow-sm">
+                        <i class="fas fa-file-excel"></i> Rekap Bulanan
+                    </button>
+                    <button id="send-msg-btn" class="bg-blue-50 text-blue-700 hover:text-white hover:bg-blue-600 px-4 py-2 rounded-xl transition-colors font-bold text-sm flex items-center gap-2 border border-blue-200 hover:border-blue-600 shadow-sm">
                         <i class="fas fa-paper-plane"></i> Kirim Motivasi
                     </button>
-                    <button id="refresh-btn" class="bg-teal-50 text-teal-700 hover:text-white hover:bg-teal-600 px-4 py-2 rounded-xl transition-colors font-bold text-sm flex items-center gap-2 border border-teal-200 hover:border-teal-600">
+                    <button id="refresh-btn" class="bg-teal-50 text-teal-700 hover:text-white hover:bg-teal-600 px-4 py-2 rounded-xl transition-colors font-bold text-sm flex items-center gap-2 border border-teal-200 hover:border-teal-600 shadow-sm">
                         <i class="fas fa-sync-alt"></i> Segarkan Data
                     </button>
                 </div>
@@ -366,6 +382,7 @@
                 fetchLogs(); // Hanya muat data setelah login
                 fetchTopStudents(); // Muat data top 3
                 fetchLeaderboardBulanan(); // Muat leaderboard
+                fetchPassiveStudents(); // Cek siswa pasif
             } else {
                 loginOverlay.style.display = 'flex';
                 document.body.style.overflow = 'hidden'; // Kunci scroll
@@ -552,18 +569,34 @@
                     return;
                 }
 
+                // Helper tantangan mingguan untuk dasbor
+                function getChallengeForDate(dateObj) {
+                    const habits = ["Bangun Pagi", "Beribadah", "Berolahraga", "Makan Sehat", "Gemar Belajar", "Bermasyarakat", "Tidur Cepat/Cukup"];
+                    const weekNum = Math.floor((dateObj.getTime() - 345600000) / 604800000);
+                    return habits[Math.abs(weekNum % 7)];
+                }
+
                 // Hitung XP
                 const studentStats = {};
                 data.forEach(log => {
                     const name = log.student_name || "Tanpa Nama";
                     if (!studentStats[name]) studentStats[name] = 0;
                     
+                    const logDate = new Date(log.created_at);
+                    const challengeId = getChallengeForDate(logDate);
+
                     let habitsArr = log.habits;
                     if (typeof habitsArr === 'string') {
                         try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
                     }
                     if (Array.isArray(habitsArr)) {
-                        studentStats[name] += (habitsArr.length * 10);
+                        habitsArr.forEach(h => {
+                            if (h.habit === challengeId) {
+                                studentStats[name] += 20; // XP Ganda
+                            } else {
+                                studentStats[name] += 10; // XP Normal
+                            }
+                        });
                     }
                 });
 
@@ -647,6 +680,129 @@
                 console.error("Gagal mengambil data:", err);
                 alert("Gagal memuat data dari Supabase. Pastikan koneksi lancar.");
                 loadingRow.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 4.7 FUNGSI EXPORT KE EXCEL (CSV)
+        // ==========================================
+        const exportBtn = document.getElementById('export-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', async () => {
+                try {
+                    const originalText = exportBtn.innerHTML;
+                    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan...';
+                    
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const startDateStr = `${year}-${month}-01T00:00:00.000Z`;
+                    const lastDay = new Date(year, today.getMonth() + 1, 0).getDate();
+                    const endDateStr = `${year}-${month}-${lastDay}T23:59:59.999Z`;
+
+                    const { data, error } = await supabaseClient
+                        .from('habit_logs')
+                        .select('student_name, student_id, habits, created_at')
+                        .gte('created_at', startDateStr)
+                        .lte('created_at', endDateStr);
+
+                    if (error) throw error;
+
+                    // Rekap data
+                    const rekap = {};
+                    if (window.STUDENT_DATA) {
+                        window.STUDENT_DATA.forEach(s => {
+                            rekap[s.id] = { nama: s.nama, id: s.id, hari_aktif: new Set(), total_kegiatan: 0 };
+                        });
+                    }
+                    
+                    if (data) {
+                        data.forEach(log => {
+                            const sid = log.student_id;
+                            if (!rekap[sid]) rekap[sid] = { nama: log.student_name, id: sid, hari_aktif: new Set(), total_kegiatan: 0 };
+                            
+                            const dateStr = log.created_at.split('T')[0];
+                            rekap[sid].hari_aktif.add(dateStr);
+                            
+                            let habitsArr = log.habits;
+                            if (typeof habitsArr === 'string') {
+                                try { habitsArr = JSON.parse(habitsArr); } catch(e) { habitsArr = []; }
+                            }
+                            if (Array.isArray(habitsArr)) {
+                                rekap[sid].total_kegiatan += habitsArr.length;
+                            }
+                        });
+                    }
+
+                    // Buat CSV
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    csvContent += "ID Siswa,Nama Siswa,Jumlah Hari Aktif,Total Kegiatan\n";
+                    
+                    Object.values(rekap).forEach(r => {
+                        const baris = `"${r.id}","${r.nama}",${r.hari_aktif.size},${r.total_kegiatan}`;
+                        csvContent += baris + "\n";
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `Rekap_Kebiasaan_Bulan_${month}_${year}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    exportBtn.innerHTML = originalText;
+                } catch (e) {
+                    console.error("Gagal export:", e);
+                    alert("Gagal mengunduh data!");
+                    exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> Rekap Bulanan';
+                }
+            });
+        }
+
+        // ==========================================
+        // 4.8 FUNGSI CEK SISWA PASIF (> 7 Hari)
+        // ==========================================
+        async function fetchPassiveStudents() {
+            try {
+                if (!window.STUDENT_DATA) return;
+                
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                const startDateStr = sevenDaysAgo.toISOString();
+
+                // Ambil log 7 hari terakhir
+                const { data, error } = await supabaseClient
+                    .from('habit_logs')
+                    .select('student_id')
+                    .gte('created_at', startDateStr);
+
+                if (error) throw error;
+
+                // Cari ID siswa yang aktif
+                const activeIds = new Set();
+                if (data) {
+                    data.forEach(log => activeIds.add(log.student_id));
+                }
+
+                // Bandingkan dengan seluruh siswa
+                const passiveStudents = window.STUDENT_DATA.filter(s => !activeIds.has(s.id));
+                
+                const container = document.getElementById('passive-students-container');
+                const list = document.getElementById('passive-students-list');
+                
+                if (passiveStudents.length > 0) {
+                    list.innerHTML = '';
+                    passiveStudents.forEach(s => {
+                        // Tambahkan interaksi: Jika diklik, otomatis buka modal kirim pesan untuk siswa ini
+                        list.innerHTML += `<span class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 cursor-pointer hover:bg-red-500 hover:text-white transition-all shadow-sm" onclick="document.getElementById('send-msg-btn').click(); setTimeout(()=>document.getElementById('msg-student-id').value='${s.id}', 100);"><i class="fas fa-user-clock"></i> ${s.nama}</span>`;
+                    });
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error("Gagal mengecek siswa pasif:", e);
             }
         }
 
@@ -755,7 +911,7 @@
         refreshBtn.addEventListener('click', () => {
             const icon = refreshBtn.querySelector('i');
             icon.classList.add('fa-spin');
-            Promise.all([fetchLogs(), fetchTopStudents(), fetchLeaderboardBulanan()]).then(() => {
+            Promise.all([fetchLogs(), fetchTopStudents(), fetchLeaderboardBulanan(), fetchPassiveStudents()]).then(() => {
                 setTimeout(() => icon.classList.remove('fa-spin'), 500);
             });
         });
