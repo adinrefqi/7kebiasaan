@@ -385,6 +385,54 @@ label {
     padding: 20px;
 }
 
+/* Mood Tracker */
+.mood-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.mood-label {
+    flex: 1;
+    text-align: center;
+    cursor: pointer;
+}
+.mood-label input {
+    display: none;
+}
+.mood-icon {
+    font-size: 2.2rem;
+    background: white;
+    padding: 10px 0;
+    border-radius: 15px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.2s;
+    filter: grayscale(1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.mood-label span {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #94a3b8;
+    margin-top: 5px;
+    transition: 0.2s;
+}
+.mood-label:hover .mood-icon {
+    filter: grayscale(0.3);
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+.mood-label input:checked + .mood-icon {
+    filter: grayscale(0);
+    border-color: #f59e0b;
+    background: #fffbeb;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+}
+.mood-label input:checked ~ span {
+    color: #d97706;
+}
+
 select {
     width: 100%;
     padding: 15px 20px;
@@ -675,4 +723,118 @@ canvas {
     .input-with-icon i {
         left: 15px;
     }
+}
+
+select {
+    width: 100%;
+    padding: 15px 20px;
+    border-radius: 15px;
+    border: 2px solid var(--border-color);
+    font-size: 1rem;
+    color: var(--text-main);
+    background: white;
+    outline: none;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+select:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
+}
+
+/* ==================================
+   DARK MODE
+   ================================== */
+body.dark-mode {
+    --primary-color: #2dd4bf;
+    --primary-light: #5eead4;
+    --accent-color: #fbbf24;
+    --secondary-color: #f87171;
+    --bg-color: #0f172a;      /* Slate 900 */
+    --card-bg: #1e293b;       /* Slate 800 */
+    --text-main: #f8fafc;     /* Slate 50 */
+    --text-muted: #94a3b8;    /* Slate 400 */
+    --border-color: #334155;  /* Slate 700 */
+    background-image: radial-gradient(#334155 0.5px, transparent 0.5px);
+}
+
+body.dark-mode .habit-tile {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+body.dark-mode .habit-tile:hover {
+    border-color: var(--primary-color);
+    background: #111827;
+}
+body.dark-mode input[type="checkbox"]:checked + .tile-content {
+    background: #134e4a; /* Teal 900 */
+    border-color: var(--primary-color);
+    color: #ccfbf1;
+}
+body.dark-mode input[type="checkbox"]:checked + .tile-content .tile-icon {
+    background: var(--primary-color);
+    color: #134e4a;
+}
+body.dark-mode .habit-desc {
+    background: #0f172a;
+    color: white;
+    border-color: var(--border-color);
+}
+body.dark-mode .habit-desc:focus {
+    border-color: var(--primary-color);
+    background: var(--card-bg);
+}
+body.dark-mode input[type="date"], body.dark-mode select {
+    background: var(--card-bg);
+    color: white;
+    border-color: var(--border-color);
+}
+body.dark-mode .mood-icon {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+body.dark-mode .mood-label:hover .mood-icon {
+    border-color: var(--text-muted);
+}
+body.dark-mode .mood-label input:checked + .mood-icon {
+    background: #451a03; /* Amber 950 */
+    border-color: var(--accent-color);
+}
+body.dark-mode .modal-card {
+    background: var(--card-bg);
+    color: var(--text-main);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+body.dark-mode .modal-header {
+    background: #0f172a;
+    border-color: var(--border-color);
+}
+body.dark-mode .modal-header h3 {
+    color: var(--primary-color);
+}
+body.dark-mode .modal-body {
+    background: #0f172a;
+}
+body.dark-mode .profile-section {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+body.dark-mode .journal-item {
+    background: #0f172a;
+    border-left-color: var(--primary-color);
+}
+body.dark-mode .journal-desc {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: #cbd5e1;
+}
+body.dark-mode .badge-count {
+    background: #134e4a;
+    color: #5eead4;
+}
+body.dark-mode .btn-secondary {
+    color: #0f172a; /* Make text dark so it contrasts with bright buttons */
+}
+body.dark-mode .btn-secondary i {
+    color: #0f172a;
 }

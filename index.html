@@ -34,6 +34,7 @@
         <header>
             <div class="user-nav">
                 <div style="display: flex; gap: 8px;">
+                    <button id="theme-btn" class="btn-secondary" style="background: #64748b; padding: 8px 12px;"><i class="fas fa-moon"></i></button>
                     <button id="profile-btn" class="btn-secondary" style="background: #14b8a6;"><i class="fas fa-chart-pie"></i> Progres</button>
                     <button id="change-pin-btn" class="btn-secondary"><i class="fas fa-key"></i> Ganti PIN</button>
                 </div>
@@ -70,7 +71,14 @@
                     <h3><i class="fas fa-chart-pie"></i> Progres & Jurnal Saya</h3>
                     <button id="close-profile-modal" class="btn-close"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="modal-body custom-scrollbar">
+                    <!-- Lencana Penghargaan -->
+                    <div class="profile-section">
+                        <h4><i class="fas fa-medal"></i> Lencana Penghargaan</h4>
+                        <div id="badge-list" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                            <div class="empty-state">Memuat lencana...</div>
+                        </div>
+                    </div>
+
                     <!-- Grafik Kebiasaan -->
                     <div class="profile-section">
                         <h4><i class="fas fa-chart-bar"></i> Frekuensi 7 Hari Terakhir</h4>
@@ -204,6 +212,35 @@
                 </div>
             </div>
 
+            <!-- Mood Tracker -->
+            <div class="form-group" style="margin-top: 30px; margin-bottom: 25px;">
+                <label style="display: block; color: var(--primary-color); font-weight: 800; font-size: 1.1rem; margin-bottom: 15px; text-align: center;">
+                    <i class="fas fa-smile-beam" style="color: #f59e0b;"></i> Bagaimana Perasaanmu Hari Ini?
+                </label>
+                <div class="mood-container">
+                    <label class="mood-label">
+                        <input type="radio" name="mood" value="Sangat Senang 😊" required>
+                        <div class="mood-icon">😊</div>
+                        <span>Senang</span>
+                    </label>
+                    <label class="mood-label">
+                        <input type="radio" name="mood" value="Biasa Saja 😐">
+                        <div class="mood-icon">😐</div>
+                        <span>Biasa</span>
+                    </label>
+                    <label class="mood-label">
+                        <input type="radio" name="mood" value="Sedih 😢">
+                        <div class="mood-icon">😢</div>
+                        <span>Sedih</span>
+                    </label>
+                    <label class="mood-label">
+                        <input type="radio" name="mood" value="Marah/Kesal 😠">
+                        <div class="mood-icon">😠</div>
+                        <span>Kesal</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Tanda Tangan Ayah atau Ibu:</label>
                 <div class="signature-container">
@@ -223,6 +260,27 @@
                 </button>
             </div>
         </form>
+
+        <!-- Onboarding Modal -->
+        <div id="onboarding-modal" class="modal-overlay">
+            <div class="modal-card" style="padding: 30px; text-align: center; max-width: 450px;">
+                <h2 style="color: var(--primary-color); font-weight: 900; font-size: 1.5rem; margin-bottom: 10px;">Selamat Datang Sahabat! 👋</h2>
+                <p style="color: var(--text-muted); font-weight: 600; margin-bottom: 25px; line-height: 1.6;">Aplikasi ini akan membantumu membangun kebiasaan hebat setiap harinya.</p>
+                
+                <div style="text-align: left; background: #f0fdfa; color: #0d9488; padding: 15px; border-radius: 15px; margin-bottom: 15px; border-left: 4px solid #14b8a6;">
+                    <b>✅ 1. Centang Kebiasaanmu:</b> Jangan lupa centang minimal satu kebiasaan yang kamu lakukan hari ini.
+                </div>
+                <div style="text-align: left; background: #fffbeb; color: #b45309; padding: 15px; border-radius: 15px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+                    <b>🔥 2. Kumpulkan Lencana:</b> Isi setiap hari untuk mempertahankan "Api Streak" dan dapatkan lencana keren!
+                </div>
+                <div style="text-align: left; background: #e0e7ff; color: #4338ca; padding: 15px; border-radius: 15px; margin-bottom: 25px; border-left: 4px solid #6366f1;">
+                    <b>⭐ 3. Tantangan Mingguan:</b> Kerjakan target mingguan untuk mendapatkan XP (Poin) ganda!
+                </div>
+                
+                <button id="close-onboarding" class="btn-primary" style="width: 100%; font-size: 1rem;">Mulai Petualanganku! 🚀</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>

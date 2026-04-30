@@ -29,6 +29,71 @@ document.getElementById('logout-btn')?.addEventListener('click', () => {
 
 checkAuth();
 
+// ==========================================
+// 0. FITUR OFFLINE, DARK MODE & ONBOARDING
+// ==========================================
+
+// --- Dark Mode ---
+const themeBtn = document.getElementById('theme-btn');
+if (themeBtn) {
+    const themeIcon = themeBtn.querySelector('i');
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+    }
+    
+    themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('theme', 'dark');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        } else {
+            localStorage.setItem('theme', 'light');
+            themeIcon.classList.replace('fa-sun', 'fa-moon');
+        }
+    });
+}
+
+// --- Offline Sync ---
+async function syncOfflineData() {
+    let queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+    if (queue.length === 0) return;
+    
+    if (!navigator.onLine) return;
+    
+    console.log("Menyinkronkan data offline...");
+    try {
+        const { error } = await supabaseClient.from('habit_logs').insert(queue);
+        if (error) throw error;
+        
+        localStorage.removeItem('offlineQueue');
+        alert('Data yang tertunda saat offline berhasil disinkronkan ke server! 🚀');
+        if (typeof loadGamificationStats === 'function') loadGamificationStats();
+    } catch (e) {
+        console.error('Gagal sinkron data:', e);
+    }
+}
+window.addEventListener('online', syncOfflineData);
+
+// --- Onboarding Tutorial ---
+function checkOnboarding() {
+    if (!localStorage.getItem('hasSeenTutorial') && localStorage.getItem('isLoggedIn') === 'true') {
+        const modal = document.getElementById('onboarding-modal');
+        if (modal) {
+            modal.style.display = 'flex'; // Ganti dari classList karena di index kita pake modal-overlay
+            document.getElementById('close-onboarding').addEventListener('click', () => {
+                modal.style.display = 'none';
+                localStorage.setItem('hasSeenTutorial', 'true');
+            });
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkOnboarding();
+    syncOfflineData();
+});
+
 // Setup Tanggal Default
 document.addEventListener('DOMContentLoaded', () => {
     const reportDate = document.getElementById('report-date');
@@ -183,22 +248,55 @@ habitForm.addEventListener('submit', async (e) => {
             return;
         }
 
+        // Ambil Mood Tracker (Disisipkan sebagai Kebiasaan Khusus tanpa mengubah struktur database)
+        const moodInput = document.querySelector('input[name="mood"]:checked');
+        if (moodInput) {
+            selectedHabits.push({
+                habit: "Perasaan Hari Ini",
+                desc: moodInput.value
+            });
+        }
+
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
         
         // Atur waktu submission sesuai tanggal yang dipilih
         const customDate = new Date(`${selectedDate}T12:00:00`).toISOString();
 
-        const { data, error } = await supabaseClient
+        const insertData = { 
+            student_id: studentID, 
+            student_name: studentName, 
+            habits: selectedHabits, 
+            signature_url: signatureImage,
+            created_at: customDate
+        };
+
+        // Jika OFFLINE, simpan ke IndexedDB / LocalStorage Queue
+        if (!navigator.onLine) {
+            let queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+            queue.push(insertData);
+            localStorage.setItem('offlineQueue', JSON.stringify(queue));
+            
+            alert('Kamu sedang offline! Laporanmu disimpan di HP dan akan otomatis dikirim saat internet kembali aktif. 📡');
+            
+            // Reset UI
+            const checkboxes = document.querySelectorAll('input[name="habit"]:checked');
+            checkboxes.forEach(cb => cb.checked = false);
+            const descInputs = document.querySelectorAll('.habit-desc');
+            descInputs.forEach(input => input.value = '');
+            const moodInputChecked = document.querySelector('input[name="mood"]:checked');
+            if (moodInputChecked) moodInputChecked.checked = false;
+            
+            signaturePad.clear();
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            loadGamificationStats();
+            return;
+        }
+
+        // Jika ONLINE, kirim ke Supabase
+        const { error } = await supabaseClient
             .from('habit_logs')
-            .insert([
-                { 
-                    student_id: studentID, 
-                    student_name: studentName, 
-                    habits: selectedHabits, 
-                    signature_url: signatureImage,
-                    created_at: customDate
-                }
-            ]);
+            .insert([insertData]);
 
         if (error) throw error;
 
@@ -453,12 +551,18 @@ async function loadGamificationStats() {
             bar.classList.remove('hidden');
             bar.style.display = 'block';
 
-            // Beri Lencana jika mencapai kelipatan 7 hari
-            if (currentStreak > 0 && currentStreak % 7 === 0) {
+            // Beri Lencana jika mencapai milestone tertentu
+            const milestones = [3, 5, 7, 14, 21, 30, 50, 100];
+            if (milestones.includes(currentStreak)) {
                 const lastBadgeAlert = localStorage.getItem('lastBadgeAlert');
                 if (lastBadgeAlert !== currentStreak.toString()) {
+                    let badgeIcon = "🔥";
+                    if (currentStreak >= 30) badgeIcon = "🏆";
+                    else if (currentStreak >= 14) badgeIcon = "💎";
+                    else if (currentStreak >= 7) badgeIcon = "⭐";
+                    
                     setTimeout(() => {
-                        alert(`🎉 SELAMAT! Kamu mendapatkan Lencana: "Pejuang ${currentStreak} Hari"!\nKamu berhasil konsisten tanpa putus. Terus pertahankan prestasimu! 🏅`);
+                        alert(`🎉 SELAMAT! Kamu mendapatkan Lencana Khusus!\n\n${badgeIcon} Pejuang ${currentStreak} Hari Beruntun ${badgeIcon}\n\nKamu berhasil konsisten tanpa putus. Terus pertahankan prestasimu yang luar biasa ini!`);
                     }, 1000);
                     localStorage.setItem('lastBadgeAlert', currentStreak.toString());
                 }
@@ -482,6 +586,8 @@ if (localStorage.getItem('isLoggedIn') === 'true') {
     checkMotivation();
     renderWeeklyChallenge();
     loadGamificationStats();
+    checkOnboarding();
+    syncOfflineData();
 }
 
 // 7. Fitur Profil & Riwayat Jurnal
@@ -540,7 +646,51 @@ async function loadProfileData() {
             });
         }
 
-        // 2. Render Grafik 7 Hari Terakhir
+        // 3. Kalkulasi Max Streak untuk Render Lencana Historis
+        const uniqueDates = new Set();
+        data.forEach(log => uniqueDates.add(log.created_at.split('T')[0]));
+        const sortedDates = Array.from(uniqueDates).sort();
+        
+        let maxStreak = 0;
+        let tempStreak = 0;
+        let prevDate = null;
+
+        sortedDates.forEach(dateStr => {
+            if (!prevDate) {
+                tempStreak = 1;
+            } else {
+                const diffTime = new Date(dateStr) - new Date(prevDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays === 1) tempStreak++;
+                else tempStreak = 1;
+            }
+            if (tempStreak > maxStreak) maxStreak = tempStreak;
+            prevDate = dateStr;
+        });
+
+        const badgeList = document.getElementById('badge-list');
+        if (badgeList) {
+            badgeList.innerHTML = '';
+            const allBadges = [
+                { days: 3, icon: "🔥", title: "3 Hari" },
+                { days: 5, icon: "🔥", title: "5 Hari" },
+                { days: 7, icon: "⭐", title: "7 Hari" },
+                { days: 14, icon: "💎", title: "14 Hari" },
+                { days: 30, icon: "🏆", title: "30 Hari" },
+            ];
+            
+            allBadges.forEach(b => {
+                const earned = maxStreak >= b.days;
+                badgeList.innerHTML += `
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 60px; opacity: ${earned ? '1' : '0.3'}; filter: ${earned ? 'none' : 'grayscale(1)'}; transition: all 0.3s;">
+                        <div style="font-size: 2rem; background: ${earned ? '#fef3c7' : '#f1f5f9'}; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; box-shadow: ${earned ? '0 4px 6px rgba(245,158,11,0.2)' : 'none'};">${b.icon}</div>
+                        <div style="font-size: 0.65rem; font-weight: 800; color: ${earned ? '#b45309' : '#64748b'}; margin-top: 5px; text-align: center;">${b.title}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. Render Grafik 7 Hari Terakhir
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         
